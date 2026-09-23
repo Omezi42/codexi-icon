@@ -68,18 +68,18 @@
 
         <div class="field-row">
           <div class="field-group half">
-            <label>上下位置 (Y調整)</label>
-            <div style="display:flex;align-items:center;gap:8px;">
-              <input id="yOffsetInput" type="range" min="-6" max="6" value="-1" step="1" style="flex:1;" />
-              <span id="yOffsetVal" style="font-size:0.85rem;font-weight:700;min-width:32px;text-align:right;">-1px</span>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+              <label style="margin-bottom:0;">上下位置 (Y調整)</label>
+              <span id="yOffsetVal" style="font-size:0.8rem;font-weight:700;color:var(--accent);">-1px</span>
             </div>
+            <input id="yOffsetInput" type="range" min="-15" max="15" value="-1" step="1" style="width:100%;cursor:pointer;" />
           </div>
           <div class="field-group half">
-            <label>文字間隔 (左右詰め)</label>
-            <div style="display:flex;align-items:center;gap:8px;">
-              <input id="spacingInput" type="range" min="-4" max="4" value="0" step="1" style="flex:1;" />
-              <span id="spacingVal" style="font-size:0.85rem;font-weight:700;min-width:32px;text-align:right;">0px</span>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+              <label style="margin-bottom:0;">文字間隔 (左右詰め)</label>
+              <span id="spacingVal" style="font-size:0.8rem;font-weight:700;color:var(--accent);">0px</span>
             </div>
+            <input id="spacingInput" type="range" min="-10" max="10" value="0" step="1" style="width:100%;cursor:pointer;" />
           </div>
         </div>
 
@@ -153,6 +153,6 @@
     </main>
   </div>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=20260924_03"></script>
 </body>
 </html>

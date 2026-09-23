@@ -110,22 +110,26 @@ function bindEvents() {
 
   // 上下位置微調整 (Y offset)
   if (yOffsetInput) {
-    yOffsetInput.addEventListener('input', () => {
+    const handleY = () => {
       currentYOffset = parseInt(yOffsetInput.value, 10);
       if (yOffsetVal) yOffsetVal.textContent = `${currentYOffset > 0 ? '+' : ''}${currentYOffset}px`;
       switchToFontMode();
-      schedulePreview();
-    });
+      updatePreview();
+    };
+    yOffsetInput.addEventListener('input', handleY);
+    yOffsetInput.addEventListener('change', handleY);
   }
 
   // 文字間隔微調整 (Spacing)
   if (spacingInput) {
-    spacingInput.addEventListener('input', () => {
+    const handleSpacing = () => {
       currentSpacing = parseInt(spacingInput.value, 10);
       if (spacingVal) spacingVal.textContent = `${currentSpacing > 0 ? '+' : ''}${currentSpacing}px`;
       switchToFontMode();
-      schedulePreview();
-    });
+      updatePreview();
+    };
+    spacingInput.addEventListener('input', handleSpacing);
+    spacingInput.addEventListener('change', handleSpacing);
   }
 
   presetSelect.addEventListener('change', onPresetChange);
