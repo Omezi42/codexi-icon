@@ -3,7 +3,7 @@
  *
  * レンダリングパイプライン:
  *   [マスク優先モード]   登録文字はサブピクセルマスク(RGBA PNG)使用 → 99%+ 完全再現
- *   [フォント直接描画]   Noto Sans JP の指定ウェイト (400 Regular / 500 Medium / 700 Bold / 900 Black)
+ *   [フォント直接描画]   Noto Sans JP の指定ウェイト (300 / 400 / 500 / 700 / 900)
  *                       長体0.58倍 + 垂直センター微調整で綺麗にレンダリング
  *
  * ブレンド式: output[c] = round( bg[c] + (t_c/255) × (255 - bg[c]) )
@@ -16,7 +16,6 @@ const BASE = './data/';
 const ICON_BASE = './icon/';
 const PREVIEW_SCALE = 3;
 
-// フォントレンダリング基本定数
 const FONT_FAMILY = '"Noto Sans JP", sans-serif';
 const FONT_BASE_SIZE = 74;
 const FONT_SCALE_X = 0.58;       // 長体比率
@@ -29,7 +28,7 @@ let imageCache = {};
 let fontReady = false;
 let previewTimer = null;
 let currentMode = 'mask'; // 'mask' または 'font'
-let currentWeight = '700'; // '400', '500', '700', '900'
+let currentWeight = '700'; // '300', '400', '500', '700', '900'
 
 // ─── DOM refs ─────────────────────────────────────────────────────────────────
 const charLeft       = document.getElementById('charLeft');
@@ -39,6 +38,7 @@ const presetSelect   = document.getElementById('presetSelect');
 const sizeSelect     = document.getElementById('sizeSelect');
 const weightSelect   = document.getElementById('weightSelect');
 const previewCanvas  = document.getElementById('previewCanvas');
+const previewLabel   = document.getElementById('previewLabel');
 const glyphStatus    = document.getElementById('glyphStatus');
 const matchInfo      = document.getElementById('matchInfo');
 const matchFill      = document.getElementById('matchFill');
@@ -60,6 +60,11 @@ const previewCtx     = previewCanvas.getContext('2d', { willReadFrequently: true
   ]);
   metadata = await metaRes.json();
   fontReady = true;
+
+  // 全ウェイトを事前にロード
+  for (const w of ['300', '400', '500', '700', '900']) {
+    document.fonts.load(`${w} 74px "Noto Sans JP"`).catch(() => {});
+  }
 
   populatePresets();
   bindEvents();
@@ -84,10 +89,16 @@ function bindEvents() {
     schedulePreview();
   });
   sizeSelect.addEventListener('change', schedulePreview);
+
+  // フォントの太さを変更したとき：自動的に「フォント直接描画モード」に切り替える
   weightSelect.addEventListener('change', () => {
     currentWeight = weightSelect.value;
+    currentMode = 'font';
+    const fontRadio = document.querySelector('input[name="renderMode"][value="font"]');
+    if (fontRadio) fontRadio.checked = true;
     schedulePreview();
   });
+
   presetSelect.addEventListener('change', onPresetChange);
   downloadBtn.addEventListener('click', downloadCurrent);
   verifyAllBtn.addEventListener('click', runVerifyAll);
@@ -141,7 +152,16 @@ async function updatePreview() {
   updateGlyphStatus(glyphInfo, left, right);
   displayPreview(img90);
 
-  // 対応するオリジナル画像がある場合のみピクセル比較
+  // ラベル更新
+  if (previewLabel) {
+    if (currentMode === 'mask') {
+      previewLabel.textContent = `表示: 3× 拡大（マスク優先・完全再現モード）`;
+    } else {
+      previewLabel.textContent = `表示: 3× 拡大（Noto Sans JP 直接描画・ウェイト: ${currentWeight}）`;
+    }
+  }
+
+  // 元画像とのピクセル比較
   const matchKey = findMatchingIconKey(left, right);
   if (matchKey) {
     const origPath = ICON_BASE + metadata.icons[matchKey].file;
@@ -206,6 +226,7 @@ function showMatchInfo({ exactRate, nearRate }) {
 // ─── レンダリングエンジン ──────────────────────────────────────────────────────
 
 async function renderIcon(iconKey, left, right, bg, mode = 'mask', weight = '700') {
+  // マスク優先モード かつ プリセットキーが存在する場合は最高精度マスクルート
   if (mode === 'mask' && iconKey && metadata.icons[iconKey]) {
     const maskPath = `${BASE}full_masks/${iconKey}_mask.png`;
     const maskData = await loadImageData(maskPath, ICON_SIZE, ICON_SIZE);
@@ -231,6 +252,11 @@ async function composeIcon(left, right, bg, mode, weight) {
     }
   } else {
     alphas.fill(255);
+  }
+
+  // フォントのロードを保証
+  if (mode === 'font' || !metadata.glyph_registry_L[left] || !metadata.glyph_registry_R[right]) {
+    await document.fonts.load(`${weight} ${FONT_BASE_SIZE}px "Noto Sans JP"`).catch(() => {});
   }
 
   const { maskHalf: leftMask, type: leftType }  = await getGlyphMask(left,  'L', mode, weight);
@@ -265,19 +291,21 @@ async function composeIcon(left, right, bg, mode, weight) {
 async function getGlyphMask(char, side, mode, weight) {
   const registry = side === 'L' ? metadata.glyph_registry_L : metadata.glyph_registry_R;
 
+  // マスク優先モード かつ 登録グリフがある場合
   if (mode === 'mask' && char && registry[char]) {
     const path = `${BASE}glyphs/${registry[char]}`;
     const data = await loadImageData(path, HALF, ICON_SIZE);
     if (data) return { maskHalf: data.data, type: 'mask' };
   }
 
+  // フォント描画（ウェイト指定）
   const fallback = char ? renderFontMask(char, side, weight) : emptyMaskHalf();
   return { maskHalf: fallback, type: 'font' };
 }
 
 /**
  * Noto Sans JP を用いたフォントレンダリング:
- * ユーザー指定の太さ (400, 500, 700, 900) で純粋かつすっきりと描画
+ * ユーザー指定の太さ (300 / 400 / 500 / 700 / 900) で純粋かつすっきりと描画
  */
 function renderFontMask(char, side, weight = '700') {
   const off = new OffscreenCanvas(HALF, ICON_SIZE);
@@ -295,7 +323,7 @@ function renderFontMask(char, side, weight = '700') {
   ctx.textBaseline = 'middle';
   ctx.fillStyle = '#ffffff';
 
-  // 900 (Black) のみ輪郭を少し締める、400〜700は純粋なフォント形状を活かす
+  // 900 (Black) のみ輪郭を少し締める、300〜700は純粋なフォント形状を活かす
   if (weight === '900') {
     ctx.lineWidth = 1.0;
     ctx.strokeStyle = '#ffffff';

@@ -6,7 +6,7 @@
   <title>CODEXI Icon Generator</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -58,11 +58,13 @@
         <div class="field-group" id="weightGroup">
           <label>フォントの太さ（ウェイト）</label>
           <select id="weightSelect">
+            <option value="300">300 (Light - かなり細め)</option>
             <option value="400">400 (Regular - すっきり細め)</option>
             <option value="500">500 (Medium - 中細・自然)</option>
             <option value="700" selected>700 (Bold - 太め・推奨)</option>
             <option value="900">900 (Black - 極太)</option>
           </select>
+          <small style="color:var(--text-muted);font-size:0.72rem;display:block;margin-top:4px;">※変更すると自動的にフォント描画モードに切り替わります</small>
         </div>
 
         <div class="field-group">
@@ -102,7 +104,7 @@
         <h2>プレビュー</h2>
         <div class="preview-wrap">
           <canvas id="previewCanvas" width="270" height="270"></canvas>
-          <div class="preview-label">表示: 3× 拡大（生成は 90×90）</div>
+          <div id="previewLabel" class="preview-label">表示: 3× 拡大（生成は 90×90）</div>
         </div>
         <div id="matchInfo" class="match-info" hidden>
           <div id="matchBar" class="match-bar">
