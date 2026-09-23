@@ -3,156 +3,211 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CODEXI Icon Generator</title>
+  <title>CODEXI アイコンジェネレーター | ゲーム風属性アイコン作成ツール</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=M+PLUS+1p:wght@700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css?v=20260924_04" />
 </head>
 <body>
-  <div class="app">
-    <header class="header">
-      <h1>CODEXI Icon Generator</h1>
-      <p class="subtitle">アイコン画像生成・リアルタイム精度検証ツール</p>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="navbar">
+      <div class="logo">
+        <span class="logo-badge">CODEXI</span>
+        <span class="logo-title">アイコンジェネレーター</span>
+      </div>
+      <p class="tagline">カードゲームや格ゲー風の角丸アイコンをブラウザで簡単作成</p>
     </header>
 
-    <main class="main">
-      <!-- Controls -->
-      <section class="controls-panel panel">
-        <h2>設定</h2>
-
-        <div class="field-group">
-          <label>描画モード</label>
-          <div class="mode-switch-group">
-            <label class="radio-label">
-              <input type="radio" name="renderMode" value="mask" checked />
-              <span>マスク優先 (99%+ 完全再現)</span>
-            </label>
-            <label class="radio-label">
-              <input type="radio" name="renderMode" value="font" />
-              <span>フォント直接描画 (Noto Sans)</span>
-            </label>
+    <!-- Main Workspace -->
+    <main class="workspace">
+      <!-- Left Column: Preview & Output -->
+      <section class="preview-column">
+        <div class="card preview-card">
+          <div class="preview-canvas-container">
+            <canvas id="previewCanvas" width="270" height="270"></canvas>
+            <div id="copyToast" class="toast" hidden>クリップボードにコピーしました！</div>
           </div>
-        </div>
 
-        <div class="field-group">
-          <label>プリセット（既存19種）</label>
-          <select id="presetSelect">
-            <option value="">-- 自由入力 --</option>
-          </select>
-        </div>
-
-        <div class="field-row">
-          <div class="field-group half">
-            <label>左文字</label>
-            <input id="charLeft" type="text" maxlength="1" value="中" />
-          </div>
-          <div class="field-group half">
-            <label>右文字</label>
-            <input id="charRight" type="text" maxlength="1" value="攻" />
-          </div>
-        </div>
-
-        <div id="glyphStatus" class="glyph-status"></div>
-
-        <div class="field-group" id="weightGroup">
-          <label>フォントの太さ（ウェイト）</label>
-          <select id="weightSelect">
-            <option value="300">300 (Light - かなり細め)</option>
-            <option value="400" selected>400 (Regular - すっきり細め・推奨)</option>
-            <option value="500">500 (Medium - 中細・自然)</option>
-            <option value="700">700 (Bold - 太め)</option>
-            <option value="900">900 (Black - 極太)</option>
-          </select>
-        </div>
-
-        <div class="field-row">
-          <div class="field-group half">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-              <label style="margin-bottom:0;">上下位置 (Y調整)</label>
-              <span id="yOffsetVal" style="font-size:0.8rem;font-weight:700;color:var(--accent);">-1px</span>
+          <div class="preview-meta">
+            <div class="actual-size-box">
+              <span class="meta-label">原寸大 (90×90)</span>
+              <canvas id="actualCanvas" width="90" height="90"></canvas>
             </div>
-            <input id="yOffsetInput" type="range" min="-15" max="15" value="-1" step="1" style="width:100%;cursor:pointer;" />
-          </div>
-          <div class="field-group half">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-              <label style="margin-bottom:0;">文字間隔 (左右詰め)</label>
-              <span id="spacingVal" style="font-size:0.8rem;font-weight:700;color:var(--accent);">0px</span>
+            <div class="preview-badge-group">
+              <span id="renderBadge" class="status-badge">フォント生成</span>
+              <span id="matchScoreBadge" class="score-badge" hidden>一致率: --%</span>
             </div>
-            <input id="spacingInput" type="range" min="-10" max="10" value="0" step="1" style="width:100%;cursor:pointer;" />
           </div>
-        </div>
 
-        <div class="field-group">
-          <label>背景色</label>
-          <div class="palette-row">
-            <button class="pal-btn" data-color="#B84545" style="background:#B84545" title="赤（攻）"></button>
-            <button class="pal-btn" data-color="#4547BD" style="background:#4547BD" title="青（防）"></button>
-            <button class="pal-btn" data-color="#454545" style="background:#454545" title="灰（汎）"></button>
-            <button class="pal-btn" data-color="#7347C2" style="background:#7347C2" title="紫（投）"></button>
-            <button class="pal-btn" data-color="#C2C249" style="background:#C2C249" title="黄（溜）"></button>
-            <input id="colorPicker" type="color" value="#B84545" title="カスタム色" />
+          <!-- Download & Action Buttons -->
+          <div class="download-section">
+            <div class="size-selector-row">
+              <span class="size-label">出力サイズ:</span>
+              <div class="size-buttons">
+                <button class="size-chip active" data-size="90">原寸 (90px)</button>
+                <button class="size-chip" data-size="180">2× (180px)</button>
+                <button class="size-chip" data-size="360">4× (360px)</button>
+              </div>
+            </div>
+
+            <div class="action-buttons-row">
+              <button id="downloadBtn" class="btn btn-primary">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                PNG画像を保存
+              </button>
+              <button id="copyBtn" class="btn btn-secondary" title="クリップボードに画像をコピー">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                コピー
+              </button>
+            </div>
           </div>
-        </div>
-
-        <div class="field-group">
-          <label>ダウンロードサイズ</label>
-          <select id="sizeSelect">
-            <option value="90">90 × 90 px（原寸）</option>
-            <option value="180">180 × 180 px（2x）</option>
-            <option value="270">270 × 270 px（3x）</option>
-          </select>
-        </div>
-
-        <div class="action-row">
-          <button id="downloadBtn" class="btn btn-primary">⬇ PNGダウンロード</button>
-        </div>
-
-        <hr />
-
-        <div class="action-row">
-          <button id="verifyAllBtn" class="btn btn-verify">★ 全19種 精度テスト実行</button>
         </div>
       </section>
 
-      <!-- Preview -->
-      <section class="preview-panel panel">
-        <h2>プレビュー</h2>
-        <div class="preview-wrap">
-          <canvas id="previewCanvas" width="270" height="270"></canvas>
-          <div id="previewLabel" class="preview-label">表示: 3× 拡大（生成は 90×90）</div>
-        </div>
-        <div id="matchInfo" class="match-info" hidden>
-          <div id="matchBar" class="match-bar">
-            <div id="matchFill" class="match-fill"></div>
-          </div>
-          <div id="matchText" class="match-text"></div>
-        </div>
-      </section>
+      <!-- Right Column: Customization Controls -->
+      <section class="controls-column">
+        <!-- 1. Text & Template -->
+        <div class="card control-card">
+          <h2 class="card-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"></polyline><line x1="9" y1="20" x2="15" y2="20"></line><line x1="12" y1="4" x2="12" y2="20"></line></svg>
+            文字・テキスト
+          </h2>
 
-      <!-- Results -->
-      <section class="results-panel panel" id="resultsPanel" hidden>
-        <h2>精度検証レポート</h2>
-        <div id="summaryBanner" class="summary-banner"></div>
-        <div class="results-table-wrap">
-          <table id="resultsTable">
-            <thead>
-              <tr>
-                <th>アイコン</th>
-                <th>生成結果</th>
-                <th>ピクセル一致率</th>
-                <th>類似度 (誤差許容)</th>
-                <th>最大差分</th>
-                <th>判定</th>
-              </tr>
-            </thead>
-            <tbody id="resultsBody"></tbody>
-          </table>
+          <div class="text-inputs-row">
+            <div class="input-wrap">
+              <label>左の文字</label>
+              <input id="charLeft" type="text" maxlength="1" value="中" placeholder="中" />
+            </div>
+            <div class="input-wrap">
+              <label>右の文字</label>
+              <input id="charRight" type="text" maxlength="1" value="攻" placeholder="攻" />
+            </div>
+          </div>
+
+          <!-- Quick Templates -->
+          <div class="template-section">
+            <label class="section-sublabel">クイックテンプレート</label>
+            <div class="template-chips" id="templateChips">
+              <!-- JSで動的生成 + 人気プリセット -->
+            </div>
+          </div>
         </div>
+
+        <!-- 2. Color & Style -->
+        <div class="card control-card">
+          <h2 class="card-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20 10 10 0 0 0 0-20"></path></svg>
+            カラー（属性・背景色）
+          </h2>
+
+          <div class="color-palette-grid">
+            <button class="color-chip active" data-color="#B84545" style="background:#B84545;" title="赤（攻・ストライク）"><span>攻</span></button>
+            <button class="color-chip" data-color="#4547BD" style="background:#4547BD;" title="青（防・ガード）"><span>防</span></button>
+            <button class="color-chip" data-color="#454545" style="background:#454545;" title="灰（汎・ニュートラル）"><span>汎</span></button>
+            <button class="color-chip" data-color="#7347C2" style="background:#7347C2;" title="紫（投・スロー）"><span>投</span></button>
+            <button class="color-chip" data-color="#C2C249" style="background:#C2C249;" title="黄（溜・チャージ）"><span>溜</span></button>
+            <button class="color-chip" data-color="#2E865F" style="background:#2E865F;" title="緑（技・スキル）"><span>技</span></button>
+            <button class="color-chip" data-color="#D97724" style="background:#D97724;" title="橙（特・スペシャル）"><span>特</span></button>
+            <button class="color-chip" data-color="#2A2A2A" style="background:#2A2A2A;" title="黒（闇・ダーク）"><span>闇</span></button>
+
+            <!-- Custom Picker -->
+            <label class="color-picker-label" title="カスタムカラー">
+              <input id="colorPicker" type="color" value="#B84545" />
+              <span>＋</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 3. Fine Tuning (Layout & Typography) -->
+        <div class="card control-card">
+          <div class="card-header-toggle" id="fineTuneToggle">
+            <h2 class="card-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+              レイアウト・文字の微調整
+            </h2>
+            <button id="resetAdjustBtn" class="btn-text">初期値に戻す</button>
+          </div>
+
+          <div class="fine-tune-controls">
+            <div class="control-row">
+              <label>文字の太さ (ウェイト)</label>
+              <div class="weight-pills">
+                <button class="weight-chip" data-weight="300">極細</button>
+                <button class="weight-chip active" data-weight="400">標準 (細身)</button>
+                <button class="weight-chip" data-weight="500">中細</button>
+                <button class="weight-chip" data-weight="700">太め</button>
+                <button class="weight-chip" data-weight="900">極太</button>
+              </div>
+            </div>
+
+            <div class="slider-control-group">
+              <div class="slider-header">
+                <label for="yOffsetInput">上下位置 (Yオフセット)</label>
+                <span id="yOffsetVal" class="slider-val">-1 px</span>
+              </div>
+              <input id="yOffsetInput" type="range" min="-15" max="15" value="-1" step="1" />
+            </div>
+
+            <div class="slider-control-group">
+              <div class="slider-header">
+                <label for="spacingInput">文字間隔 (左右の隙間)</label>
+                <span id="spacingVal" class="slider-val">0 px</span>
+              </div>
+              <input id="spacingInput" type="range" min="-10" max="10" value="0" step="1" />
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Developer / Accuracy Accordion -->
+        <details class="card dev-details">
+          <summary class="dev-summary">
+            <span>🛠 開発者向け: 原本画像ピクセル比較 & 精度検証</span>
+            <span class="summary-arrow">▼</span>
+          </summary>
+          <div class="dev-content">
+            <p class="dev-desc">既存19種類の原本アイコン画像と、生成結果をピクセル単位で比較します。</p>
+
+            <div class="dev-mode-row">
+              <label>描画モード:</label>
+              <label><input type="radio" name="renderMode" value="font" checked /> フォント直接描画</label>
+              <label><input type="radio" name="renderMode" value="mask" /> 原本マスク優先 (99%+再現)</label>
+            </div>
+
+            <button id="verifyAllBtn" class="btn btn-secondary btn-full">
+              ★ 全19種 ピクセル精度テストを実行
+            </button>
+
+            <div id="resultsPanel" hidden>
+              <div id="summaryBanner" class="summary-banner"></div>
+              <div class="table-wrap">
+                <table id="resultsTable">
+                  <thead>
+                    <tr>
+                      <th>アイコン</th>
+                      <th>プレビュー</th>
+                      <th>完全一致</th>
+                      <th>類似度</th>
+                      <th>最大差分</th>
+                      <th>判定</th>
+                    </tr>
+                  </thead>
+                  <tbody id="resultsBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </details>
       </section>
     </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>CODEXI Icon Generator &copy; 2026 | クライアントサイド完結型高速画像生成</p>
+    </footer>
   </div>
 
-  <script src="app.js?v=20260924_03"></script>
+  <script src="app.js?v=20260924_04"></script>
 </body>
 </html>
