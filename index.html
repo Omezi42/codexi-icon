@@ -4,6 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CODEXI Icon Generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@700;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -19,7 +22,7 @@
         <h2>設定</h2>
 
         <div class="field-group">
-          <label>プリセット</label>
+          <label>プリセット（既存19種）</label>
           <select id="presetSelect">
             <option value="">-- 自由入力 --</option>
           </select>
@@ -36,6 +39,8 @@
           </div>
         </div>
 
+        <div id="glyphStatus" class="glyph-status"></div>
+
         <div class="field-group">
           <label>背景色</label>
           <div class="palette-row">
@@ -49,9 +54,9 @@
         </div>
 
         <div class="field-group">
-          <label>キャンバスサイズ</label>
+          <label>ダウンロードサイズ</label>
           <select id="sizeSelect">
-            <option value="90">90 × 90 px（標準）</option>
+            <option value="90">90 × 90 px（原寸）</option>
             <option value="180">180 × 180 px（2x）</option>
             <option value="270">270 × 270 px（3x）</option>
           </select>
@@ -92,7 +97,7 @@
             <thead>
               <tr>
                 <th>アイコン</th>
-                <th>プレビュー</th>
+                <th>生成結果</th>
                 <th>完全一致率</th>
                 <th>最大差分</th>
                 <th>判定</th>
