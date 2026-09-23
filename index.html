@@ -6,7 +6,7 @@
   <title>CODEXI Icon Generator</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@700;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -30,7 +30,7 @@
             </label>
             <label class="radio-label">
               <input type="radio" name="renderMode" value="font" />
-              <span>フォント直接描画 (Noto Sans 最適化)</span>
+              <span>フォント直接描画 (Noto Sans)</span>
             </label>
           </div>
         </div>
@@ -54,6 +54,16 @@
         </div>
 
         <div id="glyphStatus" class="glyph-status"></div>
+
+        <div class="field-group" id="weightGroup">
+          <label>フォントの太さ（ウェイト）</label>
+          <select id="weightSelect">
+            <option value="400">400 (Regular - すっきり細め)</option>
+            <option value="500">500 (Medium - 中細・自然)</option>
+            <option value="700" selected>700 (Bold - 太め・推奨)</option>
+            <option value="900">900 (Black - 極太)</option>
+          </select>
+        </div>
 
         <div class="field-group">
           <label>背景色</label>
