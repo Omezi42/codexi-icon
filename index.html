@@ -59,12 +59,28 @@
           <label>フォントの太さ（ウェイト）</label>
           <select id="weightSelect">
             <option value="300">300 (Light - かなり細め)</option>
-            <option value="400">400 (Regular - すっきり細め)</option>
+            <option value="400" selected>400 (Regular - すっきり細め・推奨)</option>
             <option value="500">500 (Medium - 中細・自然)</option>
-            <option value="700" selected>700 (Bold - 太め・推奨)</option>
+            <option value="700">700 (Bold - 太め)</option>
             <option value="900">900 (Black - 極太)</option>
           </select>
-          <small style="color:var(--text-muted);font-size:0.72rem;display:block;margin-top:4px;">※変更すると自動的にフォント描画モードに切り替わります</small>
+        </div>
+
+        <div class="field-row">
+          <div class="field-group half">
+            <label>上下位置 (Y調整)</label>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <input id="yOffsetInput" type="range" min="-6" max="6" value="-1" step="1" style="flex:1;" />
+              <span id="yOffsetVal" style="font-size:0.85rem;font-weight:700;min-width:32px;text-align:right;">-1px</span>
+            </div>
+          </div>
+          <div class="field-group half">
+            <label>文字間隔 (左右詰め)</label>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <input id="spacingInput" type="range" min="-4" max="4" value="0" step="1" style="flex:1;" />
+              <span id="spacingVal" style="font-size:0.85rem;font-weight:700;min-width:32px;text-align:right;">0px</span>
+            </div>
+          </div>
         </div>
 
         <div class="field-group">

@@ -4,7 +4,7 @@
  * レンダリングパイプライン:
  *   [マスク優先モード]   登録文字はサブピクセルマスク(RGBA PNG)使用 → 99%+ 完全再現
  *   [フォント直接描画]   Noto Sans JP の指定ウェイト (300 / 400 / 500 / 700 / 900)
- *                       長体0.58倍 + 垂直センター微調整で綺麗にレンダリング
+ *                       長体0.58倍 + 垂直位置微調整 + 文字間隔微調整で極限まで一致率を向上
  *
  * ブレンド式: output[c] = round( bg[c] + (t_c/255) × (255 - bg[c]) )
  */
@@ -19,7 +19,6 @@ const PREVIEW_SCALE = 3;
 const FONT_FAMILY = '"Noto Sans JP", sans-serif';
 const FONT_BASE_SIZE = 74;
 const FONT_SCALE_X = 0.58;       // 長体比率
-const FONT_Y_OFFSET = 2;         // 垂直センター微調整
 
 // ─── 状態 ─────────────────────────────────────────────────────────────────────
 let metadata = null;
@@ -28,7 +27,9 @@ let imageCache = {};
 let fontReady = false;
 let previewTimer = null;
 let currentMode = 'mask'; // 'mask' または 'font'
-let currentWeight = '700'; // '300', '400', '500', '700', '900'
+let currentWeight = '400'; // デフォルト: 400 Regular
+let currentYOffset = -1;   // デフォルト: -1px (以前の+2pxから3px上へ移動)
+let currentSpacing = 0;    // デフォルト: 0px (左右詰め)
 
 // ─── DOM refs ─────────────────────────────────────────────────────────────────
 const charLeft       = document.getElementById('charLeft');
@@ -37,6 +38,10 @@ const colorPicker    = document.getElementById('colorPicker');
 const presetSelect   = document.getElementById('presetSelect');
 const sizeSelect     = document.getElementById('sizeSelect');
 const weightSelect   = document.getElementById('weightSelect');
+const yOffsetInput   = document.getElementById('yOffsetInput');
+const yOffsetVal     = document.getElementById('yOffsetVal');
+const spacingInput   = document.getElementById('spacingInput');
+const spacingVal     = document.getElementById('spacingVal');
 const previewCanvas  = document.getElementById('previewCanvas');
 const previewLabel   = document.getElementById('previewLabel');
 const glyphStatus    = document.getElementById('glyphStatus');
@@ -80,6 +85,12 @@ function populatePresets() {
   }
 }
 
+function switchToFontMode() {
+  currentMode = 'font';
+  const fontRadio = document.querySelector('input[name="renderMode"][value="font"]');
+  if (fontRadio) fontRadio.checked = true;
+}
+
 function bindEvents() {
   charLeft.addEventListener('input', () => { presetSelect.value = ''; schedulePreview(); });
   charRight.addEventListener('input', () => { presetSelect.value = ''; schedulePreview(); });
@@ -90,14 +101,32 @@ function bindEvents() {
   });
   sizeSelect.addEventListener('change', schedulePreview);
 
-  // フォントの太さを変更したとき：自動的に「フォント直接描画モード」に切り替える
+  // フォントウェイト変更
   weightSelect.addEventListener('change', () => {
     currentWeight = weightSelect.value;
-    currentMode = 'font';
-    const fontRadio = document.querySelector('input[name="renderMode"][value="font"]');
-    if (fontRadio) fontRadio.checked = true;
+    switchToFontMode();
     schedulePreview();
   });
+
+  // 上下位置微調整 (Y offset)
+  if (yOffsetInput) {
+    yOffsetInput.addEventListener('input', () => {
+      currentYOffset = parseInt(yOffsetInput.value, 10);
+      if (yOffsetVal) yOffsetVal.textContent = `${currentYOffset > 0 ? '+' : ''}${currentYOffset}px`;
+      switchToFontMode();
+      schedulePreview();
+    });
+  }
+
+  // 文字間隔微調整 (Spacing)
+  if (spacingInput) {
+    spacingInput.addEventListener('input', () => {
+      currentSpacing = parseInt(spacingInput.value, 10);
+      if (spacingVal) spacingVal.textContent = `${currentSpacing > 0 ? '+' : ''}${currentSpacing}px`;
+      switchToFontMode();
+      schedulePreview();
+    });
+  }
 
   presetSelect.addEventListener('change', onPresetChange);
   downloadBtn.addEventListener('click', downloadCurrent);
@@ -147,7 +176,7 @@ async function updatePreview() {
   const left  = charLeft.value;
   const right = charRight.value;
 
-  const { img90, glyphInfo } = await renderIcon(key, left, right, currentBg, currentMode, currentWeight);
+  const { img90, glyphInfo } = await renderIcon(key, left, right, currentBg, currentMode, currentWeight, currentYOffset, currentSpacing);
 
   updateGlyphStatus(glyphInfo, left, right);
   displayPreview(img90);
@@ -157,7 +186,7 @@ async function updatePreview() {
     if (currentMode === 'mask') {
       previewLabel.textContent = `表示: 3× 拡大（マスク優先・完全再現モード）`;
     } else {
-      previewLabel.textContent = `表示: 3× 拡大（Noto Sans JP 直接描画・ウェイト: ${currentWeight}）`;
+      previewLabel.textContent = `表示: 3× 拡大（Noto Sans 直接描画・ウェイト: ${currentWeight}, Y: ${currentYOffset}px, 間隔: ${currentSpacing}px）`;
     }
   }
 
@@ -225,8 +254,7 @@ function showMatchInfo({ exactRate, nearRate }) {
 
 // ─── レンダリングエンジン ──────────────────────────────────────────────────────
 
-async function renderIcon(iconKey, left, right, bg, mode = 'mask', weight = '700') {
-  // マスク優先モード かつ プリセットキーが存在する場合は最高精度マスクルート
+async function renderIcon(iconKey, left, right, bg, mode = 'mask', weight = '400', yOff = -1, spacing = 0) {
   if (mode === 'mask' && iconKey && metadata.icons[iconKey]) {
     const maskPath = `${BASE}full_masks/${iconKey}_mask.png`;
     const maskData = await loadImageData(maskPath, ICON_SIZE, ICON_SIZE);
@@ -238,10 +266,10 @@ async function renderIcon(iconKey, left, right, bg, mode = 'mask', weight = '700
     }
   }
 
-  return composeIcon(left, right, bg, mode, weight);
+  return composeIcon(left, right, bg, mode, weight, yOff, spacing);
 }
 
-async function composeIcon(left, right, bg, mode, weight) {
+async function composeIcon(left, right, bg, mode, weight, yOff, spacing) {
   const cornerData = await loadImageData(`${BASE}masks/corner_mask_90x90.png`, ICON_SIZE, ICON_SIZE);
 
   const alphas = new Uint8Array(ICON_SIZE * ICON_SIZE);
@@ -254,13 +282,12 @@ async function composeIcon(left, right, bg, mode, weight) {
     alphas.fill(255);
   }
 
-  // フォントのロードを保証
   if (mode === 'font' || !metadata.glyph_registry_L[left] || !metadata.glyph_registry_R[right]) {
     await document.fonts.load(`${weight} ${FONT_BASE_SIZE}px "Noto Sans JP"`).catch(() => {});
   }
 
-  const { maskHalf: leftMask, type: leftType }  = await getGlyphMask(left,  'L', mode, weight);
-  const { maskHalf: rightMask, type: rightType } = await getGlyphMask(right, 'R', mode, weight);
+  const { maskHalf: leftMask, type: leftType }  = await getGlyphMask(left,  'L', mode, weight, yOff, spacing);
+  const { maskHalf: rightMask, type: rightType } = await getGlyphMask(right, 'R', mode, weight, yOff, spacing);
 
   const fullMask = new Uint8ClampedArray(ICON_SIZE * ICON_SIZE * 4);
   for (let y = 0; y < ICON_SIZE; y++) {
@@ -288,32 +315,34 @@ async function composeIcon(left, right, bg, mode, weight) {
   };
 }
 
-async function getGlyphMask(char, side, mode, weight) {
+async function getGlyphMask(char, side, mode, weight, yOff, spacing) {
   const registry = side === 'L' ? metadata.glyph_registry_L : metadata.glyph_registry_R;
 
-  // マスク優先モード かつ 登録グリフがある場合
   if (mode === 'mask' && char && registry[char]) {
     const path = `${BASE}glyphs/${registry[char]}`;
     const data = await loadImageData(path, HALF, ICON_SIZE);
     if (data) return { maskHalf: data.data, type: 'mask' };
   }
 
-  // フォント描画（ウェイト指定）
-  const fallback = char ? renderFontMask(char, side, weight) : emptyMaskHalf();
+  const fallback = char ? renderFontMask(char, side, weight, yOff, spacing) : emptyMaskHalf();
   return { maskHalf: fallback, type: 'font' };
 }
 
 /**
- * Noto Sans JP を用いたフォントレンダリング:
- * ユーザー指定の太さ (300 / 400 / 500 / 700 / 900) で純粋かつすっきりと描画
+ * Noto Sans JP を用いた高精度フォントレンダリング:
+ * - ユーザー指定ウェイト (300 / 400 / 500 / 700 / 900)
+ * - Y位置微調整 (yOff)
+ * - 文字間隔微調整 (spacing: 左右から中央へ寄せる)
  */
-function renderFontMask(char, side, weight = '700') {
+function renderFontMask(char, side, weight = '400', yOff = -1, spacing = 0) {
   const off = new OffscreenCanvas(HALF, ICON_SIZE);
   const ctx = off.getContext('2d', { willReadFrequently: true });
   ctx.clearRect(0, 0, HALF, ICON_SIZE);
 
-  const posX = HALF / 2 + (side === 'L' ? -0.5 : 0.5);
-  const posY = ICON_SIZE / 2 + FONT_Y_OFFSET;
+  // spacing > 0 で左右文字が中央へ寄る
+  const shiftX = side === 'L' ? spacing : -spacing;
+  const posX = HALF / 2 + shiftX;
+  const posY = ICON_SIZE / 2 + yOff;
 
   ctx.save();
   ctx.translate(posX, posY);
@@ -323,7 +352,6 @@ function renderFontMask(char, side, weight = '700') {
   ctx.textBaseline = 'middle';
   ctx.fillStyle = '#ffffff';
 
-  // 900 (Black) のみ輪郭を少し締める、300〜700は純粋なフォント形状を活かす
   if (weight === '900') {
     ctx.lineWidth = 1.0;
     ctx.strokeStyle = '#ffffff';
@@ -336,7 +364,6 @@ function renderFontMask(char, side, weight = '700') {
   const imgData = ctx.getImageData(0, 0, HALF, ICON_SIZE);
   const d = imgData.data;
 
-  // サブピクセルマスク変換
   for (let i = 0; i < d.length; i += 4) {
     const alpha = d[i + 3];
     d[i + 0] = alpha;
@@ -414,7 +441,7 @@ async function runVerifyAll() {
   for (const [key, info] of icons) {
     const { img90 } = await renderIcon(key, info.text[0], info.text[1], {
       r: info.bg[0], g: info.bg[1], b: info.bg[2],
-    }, currentMode, currentWeight);
+    }, currentMode, currentWeight, currentYOffset, currentSpacing);
 
     const origPath = ICON_BASE + info.file;
     const orig = await loadImageData(origPath, ICON_SIZE, ICON_SIZE);
@@ -459,7 +486,7 @@ async function runVerifyAll() {
 
   summaryBanner.className = 'summary-banner ' + (allPass ? 'pass' : 'fail');
   summaryBanner.innerHTML = isFontMode
-    ? `【フォント描画モード (${currentWeight})】平均完全一致率: <strong>${avgExact}%</strong>（類似度: <strong>${avgNear}%</strong>） — ${passCount} / ${icons.length} 達成`
+    ? `【フォント描画 (${currentWeight}, Y:${currentYOffset}px, 間隔:${currentSpacing}px)】平均完全一致率: <strong>${avgExact}%</strong>（類似度: <strong>${avgNear}%</strong>） — ${passCount} / ${icons.length} 達成`
     : `【マスク優先モード】全 ${passCount} / ${icons.length} 画像合格！平均 99.9%+ の完全一致を達成。`;
 
   verifyAllBtn.innerHTML = '★ 全19種 精度テスト実行';
@@ -472,7 +499,7 @@ async function downloadCurrent() {
   const key   = presetSelect.value;
   const left  = charLeft.value;
   const right = charRight.value;
-  const { img90 } = await renderIcon(key, left, right, currentBg, currentMode, currentWeight);
+  const { img90 } = await renderIcon(key, left, right, currentBg, currentMode, currentWeight, currentYOffset, currentSpacing);
 
   const size = parseInt(sizeSelect.value, 10);
   const out  = document.createElement('canvas');
