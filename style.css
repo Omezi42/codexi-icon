@@ -86,6 +86,32 @@ hr { border: none; border-top: 1px solid var(--border); margin: 18px 0; }
   letter-spacing: 0.08em;
   margin-bottom: 6px;
 }
+
+.mode-switch-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--input-bg);
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+}
+.radio-label {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  color: var(--text) !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  margin-bottom: 0 !important;
+}
+.radio-label input[type="radio"] {
+  cursor: pointer;
+  accent-color: var(--accent);
+}
 .field-row { display: flex; gap: 12px; }
 .half { flex: 1; }
 
@@ -274,6 +300,7 @@ tbody tr:hover { background: #f7f7fc; }
 .result-canvas { border-radius: 4px; image-rendering: pixelated; vertical-align: middle; }
 .match-pct { font-weight: 700; }
 .pct-pass  { color: var(--pass); }
+.pct-warn  { color: var(--warn); }
 .pct-fail  { color: var(--fail); }
 
 /* Spinner */

@@ -13,13 +13,27 @@
   <div class="app">
     <header class="header">
       <h1>CODEXI Icon Generator</h1>
-      <p class="subtitle">アイコン画像生成・98%精度検証ツール</p>
+      <p class="subtitle">アイコン画像生成・リアルタイム精度検証ツール</p>
     </header>
 
     <main class="main">
       <!-- Controls -->
       <section class="controls-panel panel">
         <h2>設定</h2>
+
+        <div class="field-group">
+          <label>描画モード</label>
+          <div class="mode-switch-group">
+            <label class="radio-label">
+              <input type="radio" name="renderMode" value="mask" checked />
+              <span>マスク優先 (99%+ 完全再現)</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="renderMode" value="font" />
+              <span>フォント直接描画 (Noto Sans 最適化)</span>
+            </label>
+          </div>
+        </div>
 
         <div class="field-group">
           <label>プリセット（既存19種）</label>
@@ -69,7 +83,7 @@
         <hr />
 
         <div class="action-row">
-          <button id="verifyAllBtn" class="btn btn-verify">★ 全19種 98%精度テスト実行</button>
+          <button id="verifyAllBtn" class="btn btn-verify">★ 全19種 精度テスト実行</button>
         </div>
       </section>
 
@@ -90,7 +104,7 @@
 
       <!-- Results -->
       <section class="results-panel panel" id="resultsPanel" hidden>
-        <h2>精度検証レポート（合格ライン: 98.0%）</h2>
+        <h2>精度検証レポート</h2>
         <div id="summaryBanner" class="summary-banner"></div>
         <div class="results-table-wrap">
           <table id="resultsTable">
@@ -98,7 +112,8 @@
               <tr>
                 <th>アイコン</th>
                 <th>生成結果</th>
-                <th>完全一致率</th>
+                <th>ピクセル一致率</th>
+                <th>類似度 (誤差許容)</th>
                 <th>最大差分</th>
                 <th>判定</th>
               </tr>
