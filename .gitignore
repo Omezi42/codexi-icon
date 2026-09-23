@@ -1,0 +1,18 @@
+# Godotプロジェクト関連は除外
+*.godot_uid
+.godot/
+*.import
+export_presets.cfg
+*.pck
+*.exe
+
+# Python
+__pycache__/
+*.pyc
+
+# 生成出力ディレクトリ
+output/
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CODEXI Icon Generator</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <h1>CODEXI Icon Generator</h1>
+      <p class="subtitle">アイコン画像生成・98%精度検証ツール</p>
+    </header>
+
+    <main class="main">
+      <!-- Controls -->
+      <section class="controls-panel panel">
+        <h2>設定</h2>
+
+        <div class="field-group">
+          <label>プリセット</label>
+          <select id="presetSelect">
+            <option value="">-- 自由入力 --</option>
+          </select>
+        </div>
+
+        <div class="field-row">
+          <div class="field-group half">
+            <label>左文字</label>
+            <input id="charLeft" type="text" maxlength="1" value="中" />
+          </div>
+          <div class="field-group half">
+            <label>右文字</label>
+            <input id="charRight" type="text" maxlength="1" value="攻" />
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label>背景色</label>
+          <div class="palette-row">
+            <button class="pal-btn" data-color="#B84545" style="background:#B84545" title="赤（攻）"></button>
+            <button class="pal-btn" data-color="#4547BD" style="background:#4547BD" title="青（防）"></button>
+            <button class="pal-btn" data-color="#454545" style="background:#454545" title="灰（汎）"></button>
+            <button class="pal-btn" data-color="#7347C2" style="background:#7347C2" title="紫（投）"></button>
+            <button class="pal-btn" data-color="#C2C249" style="background:#C2C249" title="黄（溜）"></button>
+            <input id="colorPicker" type="color" value="#B84545" title="カスタム色" />
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label>キャンバスサイズ</label>
+          <select id="sizeSelect">
+            <option value="90">90 × 90 px（標準）</option>
+            <option value="180">180 × 180 px（2x）</option>
+            <option value="270">270 × 270 px（3x）</option>
+          </select>
+        </div>
+
+        <div class="action-row">
+          <button id="downloadBtn" class="btn btn-primary">⬇ PNGダウンロード</button>
+        </div>
+
+        <hr />
+
+        <div class="action-row">
+          <button id="verifyAllBtn" class="btn btn-verify">★ 全19種 98%精度テスト実行</button>
+        </div>
+      </section>
+
+      <!-- Preview -->
+      <section class="preview-panel panel">
+        <h2>プレビュー</h2>
+        <div class="preview-wrap">
+          <canvas id="previewCanvas" width="270" height="270"></canvas>
+          <div class="preview-label">表示: 3× 拡大（生成は 90×90）</div>
+        </div>
+        <div id="matchInfo" class="match-info" hidden>
+          <div id="matchBar" class="match-bar">
+            <div id="matchFill" class="match-fill"></div>
+          </div>
+          <div id="matchText" class="match-text"></div>
+        </div>
+      </section>
+
+      <!-- Results -->
+      <section class="results-panel panel" id="resultsPanel" hidden>
+        <h2>精度検証レポート（合格ライン: 98.0%）</h2>
+        <div id="summaryBanner" class="summary-banner"></div>
+        <div class="results-table-wrap">
+          <table id="resultsTable">
+            <thead>
+              <tr>
+                <th>アイコン</th>
+                <th>プレビュー</th>
+                <th>完全一致率</th>
+                <th>最大差分</th>
+                <th>判定</th>
+              </tr>
+            </thead>
+            <tbody id="resultsBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
